@@ -1,0 +1,8 @@
+bullets.push({
+        element: bullet,
+        posX: x,
+        posY: y,
+        speed: 300 // Velocidade do tiro em pixels por segundo
+      })
+
+filter javascript

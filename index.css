@@ -1,0 +1,27 @@
+html {
+    background-color: black;
+}
+
+#screen {
+    width: 800px;
+    height: 800px;
+    background-color:black;
+    border: solid 1px white;
+
+    margin: auto;
+    color: white;
+}
+
+#player {
+    position: relative;
+    display: inline-block;
+    background-color: red;
+    top: calc(100% - 64px);
+    
+}
+
+.shot {
+    display:inline-block;
+    position: relative;
+    /*top: calc(100% - 64px)*/
+}
