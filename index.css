@@ -8,20 +8,23 @@ html {
     background-color:black;
     border: solid 1px white;
 
-    margin: auto;
     color: white;
 }
 
 #player {
     position: relative;
     display: inline-block;
-    background-color: red;
     top: calc(100% - 64px);
     
 }
 
 .shot {
     display:inline-block;
-    position: relative;
+    position: absolute;
     /*top: calc(100% - 64px)*/
+}
+
+.enemy {
+    display: inline-block;
+    position: absolute;
 }
