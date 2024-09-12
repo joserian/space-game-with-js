@@ -13,32 +13,47 @@ var obj_player = {
 }
 
 const screen = document.getElementById("screen");
+
 screen.style.width = "800px";
 screen.style.height = "800px";
 screen.style.margin = "auto";
 screen.style.marginTop = "10px";
 
-obj_player.x = parseInt(screen.style.width)/2
+var obj_screen = {
+    int_x: parseInt(getComputedStyle(screen).marginLeft),
+    int_y: parseInt(getComputedStyle(screen).marginTop),
+    x: "auto",
+    y: getComputedStyle(screen).marginTop,
+    width: screen.style.width,
+    height: screen.style.height
+}
+
+obj_player.x = parseInt(obj_screen.width)/2
 obj_player.updatePosition()
 
 var keys = [];
 
-var screen_original_margin = {
-    int_x: parseInt(getComputedStyle(screen).marginLeft),
-    int_y: parseInt(getComputedStyle(screen).marginTop),
-    x: getComputedStyle(screen).marginLeft,
-    y: getComputedStyle(screen).marginTop
+
+const score = document.getElementById("score");
+
+var time = 0, force = 0;
+
+function updateScreenShake(_time, _force) {
+    if(_time > time) time = _time;
+    if(_force > force) force = _force;
 }
 
-function systemScreenShake(time = 60, force = 8) {
-    var _random_x = Math.random() * force, _random_y = Math.random() * force;
-    screen.style.marginLeft = screen_original_margin.int_x + _random_x + "px";
-    screen.style.marginTop = screen_original_margin.int_y + _random_y + "px";
-    time--;
-    if(time <= 0) {
-        screen.style.margin = screen_original_margin.x;
-        screen.style.marginTop = screen_original_margin.y;
-        return
+function systemScreenShake() {
+    if(time > 0) {
+        var _random_x = Math.random() * force, _random_y = Math.random() * force;
+        screen.style.marginLeft = obj_screen.int_x + _random_x + "px";
+        screen.style.marginTop = obj_screen.int_y + _random_y + "px";
+        
+        time--;
+        if(time <= 0) {
+            screen.style.margin = obj_screen.x;
+            screen.style.marginTop = obj_screen.y;
+        }
     }
 }
 
@@ -57,22 +72,20 @@ function playerMove() {
         obj_player.x -= velx_;
     }
 
-    if(keys["d"] == true && obj_player.x < parseInt(screen.style.width)-48) {
+    if(keys["d"] == true && obj_player.x < parseInt(obj_screen.width)-48) {
         obj_player.x += velx_;
     }
 
     obj_player.updatePosition();
 }
 
-
 var cooldown_shot = 0, shot_exists = [];
 
 function playerShoot() {
     if(keys[" "] == true && cooldown_shot <= 0) {
         var shot_ = document.createElement("div");
-        var margin_top_ = (parseInt(screen.style.height) - 64);
-        var margin_left_  = (parseInt(getComputedStyle(screen).marginLeft) + parseInt(obj_player.x) + 24 + 6);
-        console.log(getComputedStyle(screen).marginLeft)
+        var margin_top_ = parseInt(obj_screen.height) - 64;
+        var margin_left_  = obj_screen.int_x + parseInt(obj_player.x) + 24 + 6;
         shot_.className = "shot";
         shot_.style.left = margin_left_ + "px";
         shot_.style.top = margin_top_ + "px";
@@ -86,7 +99,7 @@ function playerShoot() {
         screen.append(shot_);
         
         cooldown_shot = obj_player.cooldown;
-        
+        updateScreenShake(8, 1)
     }
     cooldown_shot--;
 
@@ -95,6 +108,16 @@ function playerShoot() {
             var posy_ = parseInt(shot.style.top) - obj_player.shot_speed * delta_time;
             shot.style.top = `${posy_}px`;
             
+
+            if(enemy_exists.length > 0) {
+                for(var i = 0; i<enemy_exists.length;i++) {
+                    if(collision(shot, enemy_exists[i].element)) {
+                        shot.remove();
+                        return false;
+                    }
+                }
+            }
+
             if(posy_ <= 0) {
                 shot.remove();
                 return false;
@@ -135,7 +158,7 @@ function createEnemy0() {
             enemy.y += 200 * delta_time;
             enemy.element.style.top = `${enemy.y}px`;
 
-            if(enemy.y > parseInt(screen.style.height)) {
+            if(enemy.y > parseInt(screen.style.height) + 48) {
                 enemy.element.remove();
                 return false;
             }
@@ -146,6 +169,20 @@ function createEnemy0() {
     }
 }
 
+function collision(element1, element2) {
+    const rect1 = element1.getBoundingClientRect();
+    const rect2 = element2.getBoundingClientRect();
+    console.log(rect1)
+    console.log(rect2)
+    return !(
+      rect1.top > rect2.bottom ||
+      rect1.bottom < rect2.top ||
+      rect1.left > rect2.right ||
+      rect1.right < rect2.left
+    );
+  }
+  
+
 var last_time = 0, delta_time;
 function loop(time) {
     delta_time = (time - last_time) / 1000;
@@ -154,7 +191,11 @@ function loop(time) {
     playerMove();    
     playerShoot();
     createEnemy0();
-    systemScreenShake()
+    systemScreenShake();
+
+    obj_screen.int_x = parseInt(getComputedStyle(screen).marginLeft);
+    obj_screen.int_y = parseInt(getComputedStyle(screen).marginTop);
+    score.style.left = obj_screen.int_x + 30 + "px";
 
     requestAnimationFrame(loop)
 }

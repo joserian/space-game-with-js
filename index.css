@@ -1,4 +1,5 @@
-html {
+body {
+    margin:0;
     background-color: black;
 }
 
@@ -9,6 +10,14 @@ html {
     border: solid 1px white;
 
     color: white;
+}
+
+#background {
+    width:100%;
+    height:100px;
+    background-color:black;
+    position: relative;
+    z-index:2;
 }
 
 #player {
@@ -27,4 +36,11 @@ html {
 .enemy {
     display: inline-block;
     position: absolute;
+    z-index:1;
+}
+
+#score {
+    position:absolute;
+    top:30px;
+    left:30px
 }
