@@ -1,4 +1,6 @@
-a fazer
-enemy system
+efeito de explosao ao inimigo morrer
 
-ajustar o screen shake para somente certas ocasioes
+fazer o inimigo atirar
+
+se o tiro do inimigo acertar o player, o player perde vida e se chegar a zero 
+acontece o efeito de explosão

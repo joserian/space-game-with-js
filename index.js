@@ -1,11 +1,10 @@
 var obj_player = {
     element:document.getElementById("player"),
-    speed: 350,
+    speed: 400,
     life: 10,
     cooldown: 20,
     shot_speed: 500,
     x:0,
-    y:0,
     updatePosition() {
         this.element.style.left = String(this.x) + "px";
         return
@@ -13,17 +12,6 @@ var obj_player = {
     
 }
 
-//#region player life
-const player_life = document.getElementById("life");
-
-var current_life = obj_player.life;
-function updateLife(_life) {
-    current_life -= _life;
-    player_life.textContent = current_life;
-}
-
-updateLife(0);
-//#endregion
 
 const screen = document.getElementById("screen");
 
@@ -92,6 +80,27 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => {
     keys[e.key] = false;
 });
+//#endregion
+
+//#region player functions
+
+//#region player life
+const player_life = document.getElementById("life");
+
+var current_life = obj_player.life;
+function updateLife(_life) {
+    current_life -= _life;
+    player_life.textContent = current_life;
+
+    if(current_life <= 9) {
+        obj_player.element.remove();
+        createShotParticle(obj_screen.int_x + obj_player.x + "px", parseInt(obj_screen.height) - 64 + "px", "explosion")
+        //
+    }
+}
+
+updateLife(0);
+//#endregion
 
 function playerMove() {
     var velx_ = obj_player.speed * delta_time;
@@ -106,7 +115,6 @@ function playerMove() {
 
     obj_player.updatePosition();
 }
-//#endregion
 
 var cooldown_shot = 0, shot_exists = [];
 
@@ -144,7 +152,7 @@ function playerShoot() {
                         shot.remove();
                         updateScore(10);
                         enemy_exists[i].life--;
-                        createShotParticle(shot.style.left, shot.style.top);
+                        createShotParticle(shot.style.left, shot.style.top, "shot-impact");
                         return false;
                     }
                 }
@@ -160,39 +168,49 @@ function playerShoot() {
     }
     
 }
+//#endregion
 
 //#region effects
 var effects_exists = [];
-function createShotParticle(_x, _y) {
+function createShotParticle(_x, _y, _type) {
     var _eff = document.createElement("div");
     _eff.className = "eff";
     _eff.style.left = _x;
     _eff.style.top = _y;
 
-    var _img = document.createElement("img");
-    _img.setAttribute("src", "sprites/sprImpactShot0.gif");
+
+    var _img = document.createElement("img"), _timeToDestroy = 100;
+    if(_type == "shot-impact") {
+        _img.setAttribute("src", "sprites/sprImpactShot0.gif");
+    }else if(_type == "explosion") {
+        _img.setAttribute("src", "sprites/explosion0.gif");
+        _timeToDestroy = 800;
+    }
 
     _eff.append(_img);
 
     screen.append(_eff);
     effects_exists[effects_exists.length] = _eff;
-    var interval = setInterval((__eff = _eff) => {
-       __eff.remove();
-       console.count()
-        clearInterval(interval);
-    }, 100)
 
-    //console.log(effects_exists)
+    var interval = setInterval((__eff = _eff, _index=effects_exists.length) => {
+        __eff.remove();
+        effects_exists = effects_exists.splice(_index, 1);
+        clearInterval(interval);
+    }, _timeToDestroy);
 
 }
 //#endregion
 
-var cooldown_enemy = 0, enemy_exists = [];
+//#region enemies
+var cooldown_enemy = 0, enemy_exists = [], shot_enemies_exists = [];
+
 function createEnemy0() {
     if(cooldown_enemy <= 0) {
         var enemy_ = document.createElement("div");
         enemy_.className = "enemy";
         enemy_.style.top = "10px";
+        var _x = Math.random() * (800-48);
+        enemy_.style.left = obj_screen.int_x + _x + "px";
 
         var img_ = document.createElement("img");
         img_.setAttribute("src", "sprites/sprEnemy0.png");
@@ -203,20 +221,56 @@ function createEnemy0() {
         enemy_exists[enemy_exists.length] = {
             element: enemy_,
             life:5,
-            y: 10
+            y: 10,
+            cooldown: Math.random() * 50
         };
 
-        cooldown_enemy = 300;
+        cooldown_enemy = 180;
     }
     cooldown_enemy--;
+}
+
+function enemy0() {
+    createEnemy0();
 
     if(enemy_exists.length > 0) {
         enemy_exists = enemy_exists.filter(enemy => {
-            enemy.y += 200 * delta_time;
+            //moving
+            enemy.y += 125 * delta_time;
             enemy.element.style.top = `${enemy.y}px`;
+            
+            //shooting
+            enemy.cooldown--;
+            if(enemy.cooldown <= 0) {
+                var _shot = document.createElement("div");
+                _shot.className = "shot";
+                _shot.style.left = parseInt(enemy.element.style.left) + 20 + "px";
+                _shot.style.top = parseInt(enemy.element.style.top) + 40 + "px";
 
+                var _img = document.createElement("img");
+                _img.setAttribute("src", "sprites/sprShot0.png");
+
+                _shot.append(_img);
+
+                shot_enemies_exists[shot_enemies_exists.length] = _shot;
+                screen.append(_shot);
+
+
+                enemy.cooldown = Math.random() * 80 + 130;
+            }
+
+            //destroy
             if(enemy.life <= 0) {
                 enemy.element.remove();
+                createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
+                updateScore(100);
+                return false;
+            }
+
+            if(collision(enemy.element, obj_player.element)) {
+                enemy.element.remove();
+                createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
+                updateLife(1);
                 return false;
             }
 
@@ -229,7 +283,29 @@ function createEnemy0() {
 
         })
     }
+    
+    if(shot_enemies_exists.length > 0) {
+        shot_enemies_exists = shot_enemies_exists.filter(shot => {
+            var posy = parseInt(shot.style.top) + obj_player.shot_speed / 1.5 * delta_time;
+            shot.style.top = `${posy}px`;
+
+            if(posy >= parseInt(screen.style.height) + 48) {
+                shot.remove();
+                return false;
+            }
+            if(collision(shot, obj_player.element)) {
+                shot.remove();
+                updateLife(1);
+                createShotParticle(shot.style.left, shot.style.top, "shot-impact")
+                return false;
+            }
+
+            return true
+        });
+    }
 }
+
+//#endregion
 
 //#region collision
 function collision(element1, element2) {
@@ -253,7 +329,7 @@ function loop(time) {
 
     playerMove();    
     playerShoot();
-    createEnemy0();
+    enemy0();
     systemScreenShake();
 
     obj_screen.int_x = parseInt(getComputedStyle(screen).marginLeft);

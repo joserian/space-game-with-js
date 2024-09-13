@@ -41,6 +41,12 @@ body {
 
 .UI {
     position:absolute;
+    transition: font-size 0.1s ease;
+}
+
+.UI:hover {
+    cursor:grab;
+    font-size: 25px;
 }
 
 #score {
@@ -49,6 +55,11 @@ body {
 
 #life {
     top:60px;
+}
+
+#clue {
+    top: 30px;
+    left: 500px;
 }
 
 .eff {
