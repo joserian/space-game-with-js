@@ -12,7 +12,6 @@ var obj_player = {
     
 }
 
-
 const screen = document.getElementById("screen");
 
 screen.style.width = "800px";
@@ -87,15 +86,15 @@ document.addEventListener("keyup", (e) => {
 //#region player life
 const player_life = document.getElementById("life");
 
-var current_life = obj_player.life;
+var current_life = obj_player.life, game_over = false;
 function updateLife(_life) {
     current_life -= _life;
     player_life.textContent = current_life;
 
-    if(current_life <= 9) {
+    if(current_life <= 0) {
         obj_player.element.remove();
         createShotParticle(obj_screen.int_x + obj_player.x + "px", parseInt(obj_screen.height) - 64 + "px", "explosion")
-        //
+        game_over = true;
     }
 }
 
@@ -168,6 +167,28 @@ function playerShoot() {
     }
     
 }
+
+function updatePlayer() {
+    playerMove();    
+    playerShoot();
+
+    if(game_over) {
+        if(!document.getElementById("game-over")) {
+        var _text = document.createElement("div");
+        _text.className = "UI";
+        _text.id = "game-over";
+        _text.style.left = obj_screen.int_x + parseInt(obj_screen.width)/2 - 150 + "px";
+        _text.style.top = obj_screen.int_y + parseInt(obj_screen.height)/2 + "px";
+        _text.textContent = "press C to restart";
+        
+        screen.append(_text);
+        }
+
+        if(keys["c"]) {
+            window.location.reload();
+        }
+    }
+}
 //#endregion
 
 //#region effects
@@ -221,6 +242,7 @@ function createEnemy0() {
         enemy_exists[enemy_exists.length] = {
             element: enemy_,
             life:5,
+            x: _x,
             y: 10,
             cooldown: Math.random() * 50
         };
@@ -230,15 +252,16 @@ function createEnemy0() {
     cooldown_enemy--;
 }
 
-function enemy0() {
+function updateEnemy0() {
     createEnemy0();
 
     if(enemy_exists.length > 0) {
         enemy_exists = enemy_exists.filter(enemy => {
             //moving
+            enemy.element.style.left = enemy.x + obj_screen.int_x + "px"; //updating position x if window resize
+
             enemy.y += 125 * delta_time;
             enemy.element.style.top = `${enemy.y}px`;
-            
             //shooting
             enemy.cooldown--;
             if(enemy.cooldown <= 0) {
@@ -327,9 +350,8 @@ function loop(time) {
     delta_time = (time - last_time) / 1000;
     last_time = time;
 
-    playerMove();    
-    playerShoot();
-    enemy0();
+    updatePlayer();
+    updateEnemy0();
     systemScreenShake();
 
     obj_screen.int_x = parseInt(getComputedStyle(screen).marginLeft);

@@ -42,6 +42,7 @@ body {
 .UI {
     position:absolute;
     transition: font-size 0.1s ease;
+    mask-origin: center;
 }
 
 .UI:hover {
@@ -65,4 +66,10 @@ body {
 .eff {
     position:absolute;
 
+}
+
+#game-over {
+    width:300px;
+    text-align:center;
+    font-size:30px;
 }
