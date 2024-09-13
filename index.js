@@ -2,7 +2,7 @@ var obj_player = {
     element:document.getElementById("player"),
     speed: 400,
     life: 10,
-    cooldown: 20,
+    cooldown: 10,
     shot_speed: 500,
     x:0,
     updatePosition() {
@@ -28,6 +28,8 @@ var obj_screen = {
     height: screen.style.height
 }
 
+const clue = document.getElementById("clue");
+
 //setting initial player position
 obj_player.x = parseInt(obj_screen.width)/2;
 obj_player.updatePosition();
@@ -52,11 +54,15 @@ var time = 0, force = 0;
 function updateScreenShake(_time, _force) {
     if(_time > time) time = _time;
     if(_force > force) force = _force;
+    
 }
-
 function systemScreenShake() {
     if(time > 0) {
-        var _random_x = Math.random() * force, _random_y = Math.random() * force;
+        var _random_x = Math.random() * force, _random_y = Math.random() * force; 
+        
+        _random_x *= Math.floor(Math.random() * 2) == 1 ? -1 : 1;
+        _random_y *= Math.floor(Math.random() * 2) == 1 ? -1 : 1;
+
         screen.style.marginLeft = obj_screen.int_x + _random_x + "px";
         screen.style.marginTop = obj_screen.int_y + _random_y + "px";
         
@@ -64,6 +70,8 @@ function systemScreenShake() {
         if(time <= 0) {
             screen.style.margin = obj_screen.x;
             screen.style.marginTop = obj_screen.y;
+            time = 0;
+            force = 0;
         }
     }
 }
@@ -135,7 +143,6 @@ function playerShoot() {
         screen.append(shot_);
         
         cooldown_shot = obj_player.cooldown;
-        updateScreenShake(8, 1)
     }
     cooldown_shot--;
 
@@ -174,14 +181,14 @@ function updatePlayer() {
 
     if(game_over) {
         if(!document.getElementById("game-over")) {
-        var _text = document.createElement("div");
-        _text.className = "UI";
-        _text.id = "game-over";
-        _text.style.left = obj_screen.int_x + parseInt(obj_screen.width)/2 - 150 + "px";
-        _text.style.top = obj_screen.int_y + parseInt(obj_screen.height)/2 + "px";
-        _text.textContent = "press C to restart";
-        
-        screen.append(_text);
+            var _text = document.createElement("div");
+            _text.className = "UI";
+            _text.id = "game-over";
+            _text.style.left = obj_screen.int_x + parseInt(obj_screen.width)/2 - 150 + "px";
+            _text.style.top = obj_screen.int_y + parseInt(obj_screen.height)/2 + "px";
+            _text.textContent = "press C to restart";
+            
+            screen.append(_text);
         }
 
         if(keys["c"]) {
@@ -278,11 +285,11 @@ function updateEnemy0() {
                 shot_enemies_exists[shot_enemies_exists.length] = _shot;
                 screen.append(_shot);
 
-
                 enemy.cooldown = Math.random() * 80 + 130;
             }
 
-            //destroy
+            //destroy 
+            //by 0 life
             if(enemy.life <= 0) {
                 enemy.element.remove();
                 createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
@@ -290,6 +297,7 @@ function updateEnemy0() {
                 return false;
             }
 
+            //collision with player
             if(collision(enemy.element, obj_player.element)) {
                 enemy.element.remove();
                 createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
@@ -358,8 +366,9 @@ function loop(time) {
     obj_screen.int_y = parseInt(getComputedStyle(screen).marginTop);
     score.style.left = obj_screen.int_x + 30 + "px";
     player_life.style.left = obj_screen.int_x + 30 + "px";
+    clue.style.left = obj_screen.int_x + 100 + "px";
 
-    requestAnimationFrame(loop)
+    requestAnimationFrame(loop);
 }
 
 requestAnimationFrame(loop);
