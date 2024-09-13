@@ -39,8 +39,19 @@ body {
     z-index:1;
 }
 
-#score {
+.UI {
     position:absolute;
+}
+
+#score {
     top:30px;
-    left:30px
+}
+
+#life {
+    top:60px;
+}
+
+.eff {
+    position:absolute;
+
 }
