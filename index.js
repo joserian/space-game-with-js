@@ -129,7 +129,7 @@ function playerShoot() {
     if(keys[" "] == true && cooldown_shot <= 0) {
         var shot_ = document.createElement("div");
         var margin_top_ = parseInt(obj_screen.height) - 64;
-        var margin_left_  = obj_screen.int_x + parseInt(obj_player.x) + 24 + 6;
+        var margin_left_  = obj_screen.int_x + parseInt(obj_player.x) + 22;
         shot_.className = "shot";
         shot_.style.left = margin_left_ + "px";
         shot_.style.top = margin_top_ + "px";
@@ -143,6 +143,7 @@ function playerShoot() {
         screen.append(shot_);
         
         cooldown_shot = obj_player.cooldown;
+        updateScreenShake(3, .1);
     }
     cooldown_shot--;
 
@@ -294,6 +295,7 @@ function updateEnemy0() {
                 enemy.element.remove();
                 createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
                 updateScore(100);
+                updateScreenShake(4, 5);
                 return false;
             }
 
@@ -302,6 +304,7 @@ function updateEnemy0() {
                 enemy.element.remove();
                 createShotParticle(enemy.element.style.left, enemy.element.style.top, "explosion");
                 updateLife(1);
+                updateScreenShake(4, 5);
                 return false;
             }
 
